@@ -10,16 +10,19 @@
 
 
 // ----------------------- USER SETTINGS -------------------------------
-names = ["HOLLY", "DAVID"];        // <-- put any number of names here
+names = ["Echo", "Zulu", "Juliet", "India", "Hotel"];        // <-- put any number of names here
 
 // --- Letters ---
-font           = "Sniglet";    // bundled — Sniglet.ttf is in this directory.
+font           = "Bungee";    // bundled — is in this directory.
                                     // Other fat fonts (install first):
                                     //   "Fredoka One", "Baloo 2",
                                     //   "Bauhaus 93", "Chewy"
 text_size      = 20;               // letter height in mm
-thickness      = 6;                // base depth / thickness of the tag in mm
-letter_spacing = 0.75;             // <1 squeezes letters so they touch
+thickness      = 8;                // base depth / thickness of the tag in mm
+letter_spacing = 0.7;             // <1 squeezes letters so they touch
+// Extra pull on letters 2..n so thin pairs (I+r, Z+o, J+u) still fuse in 3D.
+// Increase if a gap remains; decrease if letters look too squashed.
+letter_join_overlap = 1.2;
 
 // --- Random letter heights ---
 height_min = thickness * 0.8;     // shortest a letter can be
@@ -31,7 +34,7 @@ height_seed = 42;                  // change this number for a different pattern
 //   "bar"     = thin strip along the bottom of the letters
 //   "none"    = rely only on fat letters overlapping (best looks,
 //               but check the letters actually touch before printing!)
-connection_mode   = "backing";
+connection_mode   = "none";
 backing_thickness = 1.2;           // used by "backing"
 backing_margin    = 1.5;           // how far the plate sticks out past text
 bar_height        = 3.0;           // used by "bar"
@@ -52,6 +55,11 @@ $fn = 64;                          // roundness of circles
 
 // Returns the first n characters of string s as a new string.
 function str_prefix(s, n) = n == 0 ? "" : str(str_prefix(s, n-1), s[n-1]);
+
+// Stable seed from the name so each tag gets its own height pattern.
+function name_height_seed(s, i = 0, acc = 0) =
+    i >= len(s) ? height_seed + acc :
+    name_height_seed(s, i + 1, acc + ord(s[i]));
 
 
 // --------------------------- MODULES ---------------------------------
@@ -83,10 +91,10 @@ module name_tag(name) {
     cy  = ty0 + th / 2;            // vertical centre of the text
 
     ring_cx = tx0 - ring_gap - ring_outer_d / 2;   // ring centre x
-    overlap = 1.5;                                 // ensures parts fuse
+    overlap = 6;                                 // ensures parts fuse
 
-    // One random height per letter.
-    letter_heights = rands(height_min, height_max, len(name), height_seed);
+    // One random height per letter (seed varies per name).
+    letter_heights = rands(height_min, height_max, len(name), name_height_seed(name));
 
     union() {
 
@@ -101,8 +109,10 @@ module name_tag(name) {
                             valign  = "center",
                             spacing = letter_spacing).size[0];
 
+            x = prefix_w - (i > 0 ? letter_join_overlap : 0);
+
             linear_extrude(height = letter_heights[i])
-                translate([prefix_w, 0, 0])
+                translate([x, 0, 0])
                     text(name[i], size = text_size, font = font,
                          halign = "left", valign = "center",
                          spacing = letter_spacing);
