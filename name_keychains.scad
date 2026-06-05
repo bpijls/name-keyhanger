@@ -8,9 +8,12 @@
 //  the text so the ring and backing can be placed automatically).
 // =====================================================================
 
+use <Bungee-Regular.ttf>;
 
 // ----------------------- USER SETTINGS -------------------------------
-names = ["Echo", "Zulu", "Juliet", "India", "Hotel"];        // <-- put any number of names here
+//names = ["Echo", "Zulu", "Juliet", "India", "Hotel"];        // <-- put any number of names here
+
+names = ["Jur", "Irene", "Zoey", "Emma"];        // <-- put any number of names 
 
 // --- Letters ---
 font           = "Bungee";    // bundled — is in this directory.
@@ -43,6 +46,7 @@ bar_height        = 3.0;           // used by "bar"
 ring_outer_d   = 13;
 ring_hole_d    = 6;                // metal clip passes through this hole
 ring_gap       = 1.0;              // distance from ring to first letter
+ring_height    = 1.5;
 neck_width     = 6;                // width of the connector to the letters
 
 // --- Layout when several names are made at once ---
@@ -66,7 +70,7 @@ function name_height_seed(s, i = 0, acc = 0) =
 
 // Flat ring (a disc with a hole) that the metal clip hooks onto.
 module ring() {
-    linear_extrude(height = thickness)
+    linear_extrude(height = ring_height)
         difference() {
             circle(d = ring_outer_d);
             circle(d = ring_hole_d);
@@ -97,7 +101,7 @@ module name_tag(name) {
     letter_heights = rands(height_min, height_max, len(name), name_height_seed(name));
 
     union() {
-
+    
         // 1) Each letter extruded to its own height.
         //    Prefix-width gives the x-advance to where character i starts.
         for (i = [0 : len(name) - 1]) {
@@ -116,14 +120,26 @@ module name_tag(name) {
                     text(name[i], size = text_size, font = font,
                          halign = "left", valign = "center",
                          spacing = letter_spacing);
+                         
+            linear_extrude(ring_height) {
+                translate([x, 0, 0])
+                    offset(backing_margin) {
+                        fill() {
+                            text(name[i], size = text_size, font = font,
+                            halign = "left", valign = "center",
+                            spacing = letter_spacing);
+                    }
+                }
+            }
+    
         }
 
         // 2) The ring at the front
         translate([ring_cx, cy, 0]) ring();
 
         // 3) Connector neck joining the ring to the first letter
-        translate([ring_cx, cy - neck_width / 2, 0])
-            cube([(tx0 + overlap) - ring_cx, neck_width, thickness]);
+        translate([ring_cx+ring_hole_d/2, cy - neck_width / 2, 0])
+            cube([(tx0 + overlap) - ring_cx-ring_hole_d/2, neck_width, ring_height]);
 
         // 4) Whatever keeps all the letters joined together
         if (connection_mode == "backing")
