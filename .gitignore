@@ -1,2 +1,6 @@
 *.stl
 stl-files/
+.venv/
+__pycache__/
+CLAUDE,md
+.claude/
