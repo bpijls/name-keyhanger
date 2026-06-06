@@ -44,7 +44,7 @@ bar_height        = 3.0;           // used by "bar"
 
 // --- Ring / hole for the clip ---
 ring_outer_d   = 13;
-ring_hole_d    = 6;                // metal clip passes through this hole
+ring_hole_d    = 8;                // metal clip passes through this hole
 ring_gap       = 1.0;              // distance from ring to first letter
 ring_height    = 1.5;
 neck_width     = 6;                // width of the connector to the letters
